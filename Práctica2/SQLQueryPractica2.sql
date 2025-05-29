@@ -85,3 +85,25 @@ select t.Name as Territorio, p.FirstName + ' ' + p.LastName as Cliente, opc.Nume
                    join dbo.SalesTerritory t on opc.TerritoryID = t.TerritoryID
 order by Territorio;
 
+/***************************************************************************************************************
+ Consulta C
+ 
+ Listar los datos generales de las ordenes que tengan al menos los mismos productos de la orden con salesorderid =  43676.
+
+ Responsable: Asael Ocampo Cabrera
+
+******************************************************************************************************************/
+
+create nonclustered index IDX_OrderDetail_SalesOrderID
+on order_detail(SalesOrderID);
+
+select distinct Salesorderid
+from Order_Detail as OD	
+where not exists (select *
+					from (select productid
+					from Order_Detail 
+					where salesorderid=43676) as P
+					where not exists (select *
+										from Order_Detail  as OD2
+										where OD.salesorderid = OD2.salesorderid
+										and (OD2.productid = P.productid)));
