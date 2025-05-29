@@ -1,4 +1,11 @@
 use PracticaPE
+---------------------------------------------------------- P R A C T I C A   2 ---------------------------------------------------------------
+
+--INTEGRANTES EQUIPO 2--
+--OCAMPO CABRERA ASAEL
+--ROBERT ROA KARLA GUADALUPE
+--SANCHEZ VILLAGRANA OSMAR ROBERTO
+----------------------------------------------------------------------------------------------------------------------------------------------
 
 -- 2. COPIAR TABLAS DE BASE DE DATOS ADVENTUREWORKS2022 A LA NUEVA BASE DE DATOS
 -- Copiar Tabla SalesOrderHeader
@@ -58,6 +65,32 @@ from AdventureWorks2022.Person.Person;
 select* 
 from person
 
+/***************************************************************************************************************
+ Consulta A
+ 
+ Listar el producto más vendido de cada una de las categorías registradas en la base de datos. 
+
+ Responsable: Robert Roa Karla Guadalupe
+
+******************************************************************************************************************/
+WITH ProductoVentas as (
+		select pc.ProductCategoryID, pc.Name as Categoria, p.ProductID, p.Name as Producto,
+		sum(od.OrderQty) as TotalVendido
+		from order_detail od
+		inner join products p on od.ProductID = p.ProductID
+		inner join product_subcat psc on p.ProductSubcategoryID = psc.ProductSubcategoryID
+		inner join product_cat pc on psc.ProductCategoryID = pc.ProductCategoryID
+		group by pc.ProductCategoryID, pc.Name, p.ProductID, p.Name),
+MaxVentasPorCategoria as (select ProductCategoryID, max(TotalVendido) as MaxVendido 
+							from ProductoVentas
+							group by ProductCategoryID)
+select pv.Categoria, pv.Producto, pv.TotalVendido
+from ProductoVentas pv
+inner join MaxVentasPorCategoria mvpc 
+on pv.ProductCategoryID = mvpc.ProductCategoryID 
+and pv.TotalVendido = mvpc.MaxVendido
+order by pv.Categoria;
+	
 
 /***************************************************************************************************************
  Consulta B
