@@ -58,3 +58,30 @@ from AdventureWorks2022.Person.Person;
 select* 
 from person
 
+
+/***************************************************************************************************************
+ Consulta B
+ 
+ Listar el nombre de los clientes con más ordenes por cada uno de los territorios registrados en la base de datos.
+
+ Responsable: Sánchez Villagrana Osmar Rroberto
+
+******************************************************************************************************************/
+
+
+WITH OrdenesPorCliente as 
+    (select soh.TerritoryID, soh.CustomerID, count(soh.SalesOrderID) as NumeroOrdenes
+    from dbo.SalesOrderHeader soh
+    GROUP BY soh.TerritoryID, soh.CustomerID), MaximoPorTerritorio as 
+                           (select TerritoryID, max(NumeroOrdenes) as MaxOrdenes
+                            from OrdenesPorCliente
+                             group by TerritoryID)
+
+select t.Name as Territorio, p.FirstName + ' ' + p.LastName as Cliente, opc.NumeroOrdenes
+    from OrdenesPorCliente opc
+    join MaximoPorTerritorio mpt on opc.TerritoryID = mpt.TerritoryID and opc.NumeroOrdenes = mpt.MaxOrdenes
+         join dbo.Customer c on opc.CustomerID = c.CustomerID
+              join dbo.Person p on c.PersonID = p.BusinessEntityID
+                   join dbo.SalesTerritory t on opc.TerritoryID = t.TerritoryID
+order by Territorio;
+
