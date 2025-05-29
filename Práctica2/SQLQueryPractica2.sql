@@ -73,6 +73,9 @@ from person
  Responsable: Robert Roa Karla Guadalupe
 
 ******************************************************************************************************************/
+create nonclustered index IDX_OrderDetail_Composite
+on order_detail (ProductID, SalesOrderID) include (OrderQty);
+	
 WITH ProductoVentas as (
 		select pc.ProductCategoryID, pc.Name as Categoria, p.ProductID, p.Name as Producto,
 		sum(od.OrderQty) as TotalVendido
@@ -100,7 +103,23 @@ order by pv.Categoria;
  Responsable: Sánchez Villagrana Osmar Rroberto
 
 ******************************************************************************************************************/
-
+-- Índice optimizado para la tabla order_header
+create nonclustered index IDX_OrderHeader_Territory_Customer_Include
+on order_header (TerritoryID, CustomerID)
+include (SalesOrderID);
+GO
+-- Índice simple para customer
+create nonclustered index IDX_Customer_CustomerID
+on customer (CustomerID);
+GO
+-- Índice compuesto para person
+create nonclustered index IDX_Person_BusinessEntityID_Include
+on person (BusinessEntityID) include (FirstName, LastName);
+GO
+-- Índice compuesto para territory
+create nonclustered index IDX_Territory_TerritoryID_Include 
+on territory (TerritoryID) include (Name);
+GO
 
 with OrdenesPorCliente as (select soh.TerritoryID, soh.CustomerID, count(soh.SalesOrderID) as NumeroOrdenes
       from order_header soh
