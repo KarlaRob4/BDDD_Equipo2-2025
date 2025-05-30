@@ -65,14 +65,31 @@ from AdventureWorks2022.Person.Person;
 select* 
 from person
 
-/***************************************************************************************************************
- Consulta A
- 
- Listar el producto más vendido de cada una de las categorías registradas en la base de datos. 
 
- Responsable: Robert Roa Karla Guadalupe
+/*********************************************************************************************************************************************
+ Número 1: a) Listar el producto más vendido de cada una de las categorías registradas en la base de datos. 
 
-******************************************************************************************************************/
+ Requisitos:
+- El índice sugerido es:
+CREATE NONCLUSTERED INDEX IDX_OrderDetail_Composite ON order_detail (ProductID, SalesOrderID) INCLUDE (OrderQty);
+- Ejecutar la consulta con CTE para calcular el total vendido por producto y categoría.
+- Obtener el producto con mayor venta dentro de cada categoría.
+
+ Significado de los valores de los catálogos.
+•	ProductCategoryID: Identificador único de cada categoría de producto.
+•	Categoria: Nombre descriptivo de la categoría.
+•	ProductID: Identificador único del producto.
+•	Producto: Nombre descriptivo del producto.
+•	TotalVendido: Suma total de la cantidad vendida por producto.
+
+ Responsable de la consulta: Robert Roa Karla Guadalupe
+	
+ Comentarios: 
+	La creación del índice mejora significativamente el rendimiento, evitando escaneos completos en order_detail.
+	La consulta usa varias uniones y agregaciones para determinar el producto líder en ventas por categoría.
+	El uso del índice compuesto y columnas incluidas permite acelerar la suma y el agrupamiento de los datos.
+
+********************************/
 create nonclustered index IDX_OrderDetail_Composite
 on order_detail (ProductID, SalesOrderID) include (OrderQty);
 	
@@ -95,14 +112,31 @@ and pv.TotalVendido = mvpc.MaxVendido
 order by pv.Categoria;
 	
 
-/***************************************************************************************************************
- Consulta B
- 
- Listar el nombre de los clientes con más ordenes por cada uno de los territorios registrados en la base de datos.
+/*********************************************************************************************************************************************
+ Número 2: b)  Listar el nombre de los clientes con más ordenes por cada uno de los territorios registrados en la base de datos.
 
- Responsable: Sánchez Villagrana Osmar Rroberto
+ Requisitos:
+- Índice compuesto en order_header (TerritoryID, CustomerID) con columna incluida SalesOrderID.
+- Índice simple en customer (CustomerID).
+- Índice compuesto en person (BusinessEntityID) con columnas incluidas FirstName, LastName.
+- Índice compuesto en territory (TerritoryID) con columna incluida Name.
 
-******************************************************************************************************************/
+ Significado de los valores de los catálogos.
+•	TerritoryID: Identificador único de territorio.
+•	CustomerID: Identificador único de cliente.
+•	SalesOrderID: Identificador único de orden de venta.
+•	FirstName, LastName: Nombre y apellido del cliente.
+•	Name: Nombre del territorio.
+
+ Responsable de la consulta: Sánchez Villagrana Osmar Roberto
+	
+
+ Comentarios: 
+	Los índices propuestos permiten acelerar la agrupación, conteo y unión de tablas.
+	La consulta obtiene clientes con el mayor número de órdenes en cada territorio y muestra nombres completos y territorios.
+	La inclusión de columnas en índices mejora el acceso y evita lecturas adicionales.
+
+********************************/
 -- Índice optimizado para la tabla order_header
 create nonclustered index IDX_OrderHeader_Territory_Customer_Include
 on order_header (TerritoryID, CustomerID)
@@ -136,14 +170,27 @@ select t.Name as Territorio, p.FirstName + ' ' + p.LastName as Cliente, opc.Nume
                           join territory t on opc.TerritoryID = t.TerritoryID
 order by Territorio;
 
-/***************************************************************************************************************
- Consulta C
- 
- Listar los datos generales de las ordenes que tengan al menos los mismos productos de la orden con salesorderid =  43676.
+/*********************************************************************************************************************************************
+ Número 3: c)  Listar los datos generales de las ordenes que tengan al menos los mismos productos de la orden con salesorderid =  43676.
 
- Responsable: Asael Ocampo Cabrera
+ Requisitos:
+- Crear un índice no clusterizado en la tabla order_detail sobre la columna SalesOrderID para acelerar búsquedas por orden.
+- La consulta utiliza la cláusula NOT EXISTS anidada para filtrar órdenes que contienen todos los productos de la orden 43676.
+- Se emplea la estructura de subconsultas para comprobar que no falte ningún producto de la orden base en las otras órdenes.
 
-******************************************************************************************************************/
+ Significado de los valores de los catálogos.
+•	SalesOrderID: Identificador único de cada orden de venta.
+•	ProductID: Identificador único de cada producto.
+La consulta busca órdenes que sean un superconjunto de productos de una orden específica.	
+
+ Responsable de la consulta: Asael Ocampo Cabrera
+	
+ Comentarios: 
+	La creación del índice mejora el acceso a las filas correspondientes a cada orden, evitando escaneos completos de la tabla.
+	La consulta puede ser costosa en tablas grandes debido a la naturaleza de NOT EXISTS anidado, pero el índice mitiga este impacto.
+	Se recomienda mantener estadísticas actualizadas para un óptimo plan de ejecución.
+
+********************************/
 
 create nonclustered index IDX_OrderDetail_SalesOrderID
 on order_detail(SalesOrderID);
